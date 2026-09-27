@@ -1,0 +1,12 @@
+/home/catmeow/meow_os/kernel/target/x86_64-unknown-none/debug/deps/spin-2ba5623f67b2ef20.d: /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/lib.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/barrier.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/lazylock.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/mutex.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/mutex/spin.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/once.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/relax.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/rwlock.rs
+
+/home/catmeow/meow_os/kernel/target/x86_64-unknown-none/debug/deps/libspin-2ba5623f67b2ef20.rmeta: /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/lib.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/barrier.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/lazylock.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/mutex.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/mutex/spin.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/once.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/relax.rs /home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/rwlock.rs
+
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/lib.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/barrier.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/lazylock.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/mutex.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/mutex/spin.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/once.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/relax.rs:
+/home/catmeow/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.12.3/src/rwlock.rs:

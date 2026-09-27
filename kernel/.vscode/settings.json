@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.cargo-watch.arguments": [
+        "--target",
+        "thumbv7m-none-eabi"
+    ]
+}

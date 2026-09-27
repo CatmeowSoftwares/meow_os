@@ -1,0 +1,7 @@
+[tasks.clean]
+
+
+[tasks.build]
+args = ["build"]
+
+[tasks.run]

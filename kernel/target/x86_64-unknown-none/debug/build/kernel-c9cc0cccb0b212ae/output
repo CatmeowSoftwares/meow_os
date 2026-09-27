@@ -1,0 +1,1 @@
+cargo::rustc-link-arg=-Tlinker-x86_64.lds

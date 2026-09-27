@@ -1,0 +1,3 @@
+cargo:rerun-if-env-changed=UPDATE_DOCS
+cargo:rerun-if-changed=../README.md
+cargo:rerun-if-changed=../bitfields_impl/src/lib.rs

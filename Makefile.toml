@@ -1,0 +1,57 @@
+[tasks.clean]
+
+
+[tasks.build]
+command = "echo"
+args = ["meow :3"]
+
+[tasks.test]
+disabled = true
+
+[tasks.build-kernel]
+cwd = "kernel/"
+command = "makers"
+args = ["${@}"]
+
+[tasks.build-servers]
+cwd = "servers/"
+command = "makers"
+args = ["${@}"]
+
+[tasks.build-drivers]
+cwd = "drivers/"
+command = "makers"
+args = ["${@}"]
+
+
+
+
+[tasks.build-all]
+dependencies = ["build-kernel", "build-servers", "build-drivers"]
+
+
+[tasks.qemu-run]
+command = "qemu-system-${CARGO_MAKE_RUST_TARGET_ARCH}"
+args = ["-cdrom", "image.iso",
+"-audiodev", "pipewire,id=snd0",
+"-device", "intel-hda",
+"-device", "hda-duplex,audiodev=snd0",
+"-machine", "pcspk-audiodev=snd0",
+"-drive", "if=pflash,unit=0,format=raw,file=edk2-ovmf/ovmf-code-${CARGO_MAKE_RUST_TARGET_ARCH}.fd,readonly=on",
+"-m", "2G",
+"-d", "int,cpu_reset", "-no-reboot", "-no-shutdown"
+]
+
+[tasks.run]
+dependencies = ["ovmf", "build-all", "qemu-run"]
+
+
+
+[config]
+skip_core_tasks = true
+
+
+
+[tasks.ovmf]
+condition = { files_not_exist = ["edk2-ovmf"]}
+script = "curl -L https://github.com/osdev0/edk2-ovmf-nightly/releases/latest/download/edk2-ovmf.tar.gz | gunzip | tar -xf -"
