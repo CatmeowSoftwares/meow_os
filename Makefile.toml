@@ -43,9 +43,11 @@ args = ["-cdrom", "image.iso",
 ]
 
 [tasks.run]
-dependencies = ["ovmf", "build-all", "qemu-run"]
+dependencies = ["ovmf", "create-bin-directory", "build-all", "qemu-run"]
 
-
+[tasks.create-bin-directory]
+command = "mkdir"
+args = ["-p", "bin/"]
 
 [config]
 skip_core_tasks = true

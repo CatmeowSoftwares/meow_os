@@ -1,5 +1,5 @@
 target/
 edk2-ovmf/
 image.iso
-
+bin/
 
