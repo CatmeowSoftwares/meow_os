@@ -57,7 +57,7 @@ impl Scheduler for RoundRobin {
             return;
         }
         unsafe {
-            save_registers(&mut (*self.current).thread.registers.rsp as *mut u64);
+            //save_registers(&mut (*self.current).thread.registers.rsp as *mut u64);
         }
         let mut tss = TSS.lock();
         unsafe {
@@ -73,7 +73,7 @@ impl Scheduler for RoundRobin {
         }
         tss.rsp0 = unsafe { (*self.current).thread.rsp0 };
         unsafe {
-            pop_registers((*self.current).thread.registers.rsp);
+            //pop_registers((*self.current).thread.registers.rsp);
         }
     }
 }
