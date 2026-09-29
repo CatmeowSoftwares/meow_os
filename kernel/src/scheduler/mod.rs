@@ -4,7 +4,7 @@ use alloc::boxed::Box;
 
 use crate::{
     kprint, kprintln,
-    scheduler::{round_robin::Node, thread::Thread},
+    scheduler::thread::{Thread, thread_1, thread_2},
 };
 
 pub mod round_robin;
@@ -20,10 +20,9 @@ pub fn schedule() {
 
 pub(crate) fn init() {
     let mut scheduler = round_robin::SCHEDULER.lock();
-    scheduler.head = Box::into_raw(Box::new(Node {
-        id: 1,
+    scheduler.head = Box::into_raw(Box::new(Thread {
         next: null_mut(),
-        thread: Thread::new(),
+        ..Thread::new()
     }));
     unsafe {
         (*scheduler.head).next = scheduler.head;
@@ -31,6 +30,6 @@ pub(crate) fn init() {
         scheduler.last = scheduler.current;
         (*scheduler.last).next = scheduler.head;
     }
-    scheduler.add(2);
-    scheduler.add(3);
+    scheduler.add(thread_1 as *const u64 as _);
+    scheduler.add(thread_2 as *const u64 as _);
 }
