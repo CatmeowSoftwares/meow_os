@@ -6,7 +6,7 @@ use crate::{
 use core::ptr::null_mut;
 use limine::memmap::*;
 use spin::Mutex;
-
+pub const PAGE_SIZE: u64 = 0x1000;
 static HEAD: Mutex<Node> = Mutex::new(Node { next: null_mut() });
 struct Node {
     next: *mut Node,
