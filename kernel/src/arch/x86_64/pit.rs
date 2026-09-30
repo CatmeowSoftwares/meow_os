@@ -64,6 +64,12 @@ pub fn play_sound(freq: u32) {
         }
     }
 }
+pub fn shut_up() {
+    unsafe {
+        let temp = inb(0x61) & 0xfc;
+        outb(0x61, temp);
+    }
+}
 fn write_pit(reload_value: u16) {
     unsafe {
         outb(0x43, 0b00110100);
