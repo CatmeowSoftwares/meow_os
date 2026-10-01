@@ -9,10 +9,13 @@ bitflags = "2.13.2"
 bytemuck = { version = "1.25.2", features = ["derive"] }
 flanterm = "0.0.2"
 interrupts = "=0.2.0"
+intrusive-collections = "0.10.3"
 lazy_static = { version = "1.5.0", features = ["spin_no_std"] }
 limine = "0.6.5"
 linked_list_allocator = "0.10.6"
+num_enum = { version = "0.7.6", default-features = false }
 spin = "0.12.3"
+tar-no-std = "0.4.2"
 
 
 
