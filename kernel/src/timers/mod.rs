@@ -1,3 +1,4 @@
+pub mod apic;
 struct Timer {
     elapsed: u64,
     wait_time: u64,
