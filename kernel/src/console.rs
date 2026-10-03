@@ -36,7 +36,7 @@ macro_rules! kprintln {
         $crate::console::_print(format_args!("\n"));
     };
     ($($arg:tt)*) => {
-        $crate::console::_print(format_args!("{}\n", format_args!($($arg)*)));
+        $crate::console::_print(format_args!("{}\n", format_args!($($arg)*)))
     };
 }
 
