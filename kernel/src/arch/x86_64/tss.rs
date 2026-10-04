@@ -2,7 +2,7 @@ use spin::Mutex;
 
 pub(crate) static TSS: Mutex<Tss> = Mutex::new(Tss::new());
 
-#[repr(C)]
+#[repr(C, packed)]
 pub(crate) struct Tss {
     reserved1: u32,
     pub(crate) rsp0: u64,
