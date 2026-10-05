@@ -1,8 +1,8 @@
 use limine::{
     BaseRevision, RequestsEndMarker, RequestsStartMarker,
     request::{
-        ExecutableAddressRequest, FramebufferRequest, HhdmRequest, MemmapRequest, RsdpRequest,
-        TscFrequencyRequest,
+        ExecutableAddressRequest, FramebufferRequest, HhdmRequest, MemmapRequest, ModulesRequest,
+        RsdpRequest, TscFrequencyRequest,
     },
 };
 #[used]
@@ -32,6 +32,10 @@ pub static RSDP_REQUEST: RsdpRequest = RsdpRequest::new();
 #[used]
 #[unsafe(link_section = ".limine_requests")]
 pub static TSC_FREQUENCY_REQUEST: TscFrequencyRequest = TscFrequencyRequest::new();
+
+#[used]
+#[unsafe(link_section = ".limine_requests")]
+pub static MODULES_REQUEST: ModulesRequest = ModulesRequest::new();
 
 #[used]
 #[unsafe(link_section = ".limine_requests_start")]
