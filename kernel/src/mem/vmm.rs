@@ -1,23 +1,16 @@
 use core::{
-    arch::global_asm,
     marker::PhantomData,
     ops::{Deref, DerefMut},
-    ptr::null_mut,
 };
 
 use bitfields::bitfield;
 use bitflags::bitflags;
 use bytemuck::{Pod, Zeroable};
-use lazy_static::lazy_static;
 use spin::{Mutex, Once};
 static HHDM: Once<u64> = Once::new();
 use crate::{
     kprintln,
-    mem::{
-        self,
-        allocators::{Allocator, bitmap::Bitmap},
-        pmm,
-    },
+    mem::pmm::{self, PAGE_SIZE},
     requests::{EXECUTABLE_ADDRESS_REQUEST, HHDM_REQUEST},
 };
 static PML4: Mutex<Pml4> = Mutex::new(Pml4([PageDirectory::new(); 512]));
@@ -47,7 +40,6 @@ pub fn init() {
             (pml4.0.as_ptr() as u64)
                 - (executable_addr.virtual_base - executable_addr.physical_base),
         );
-        kprintln!("mrow");
     }
 }
 #[bitfield(u64, order = msb)]
@@ -103,7 +95,6 @@ impl<T> DerefMut for PhysicalAddress<T> {
         unsafe { &mut *(self.0.0 as *mut T) }
     }
 }
-struct Page {}
 pub fn unmap(virtual_address: *mut u8) {
     //let virtual_address = virtual_address as u64 & !0xfff;
     let virtual_addr = bytemuck::cast::<_, VirtualAddress>(virtual_address as u64);
@@ -155,7 +146,7 @@ pub fn get_physical_addresss(virtual_address: *mut u8) -> *mut u8 {
     let pml1_idx = virtual_addr.pml1() as usize;
     let offset = virtual_addr.offset() as usize;
     let mut pml4 = PML4.lock();
-    let mut pml4 = &mut pml4.0;
+    let pml4 = &mut pml4.0;
     let hhdm = HHDM.get().unwrap();
 
     unsafe {
@@ -166,6 +157,109 @@ pub fn get_physical_addresss(virtual_address: *mut u8) -> *mut u8 {
         let pml1 = &mut *(((((*pml2)[pml2_idx].addr() as u64) << 12) + hhdm)
             as *mut [PageTableEntry; 512]); // or pt
         ((pml1[pml1_idx].addr() << 12) as usize | offset) as *mut u8
+    }
+}
+pub fn cr3_map_address(
+    cr3: &mut Pml4,
+    virtual_address: *mut u8,
+    physical_address: *mut u8,
+    flags: Flags,
+) {
+    let virtual_address = virtual_address as u64 & !0xfff;
+    let physical_address = physical_address as u64 & !0xfff;
+    let virtual_addr = bytemuck::cast::<_, VirtualAddress>(virtual_address as u64);
+    let pml4_idx = virtual_addr.pml4() as usize;
+    let pml3_idx = virtual_addr.pml3() as usize;
+    let pml2_idx = virtual_addr.pml2() as usize;
+    let pml1_idx = virtual_addr.pml1() as usize;
+    let _offset = virtual_addr.offset() as usize;
+
+    let pml4 = &mut cr3.0;
+    let hhdm = HHDM.get().unwrap();
+    let table_flags = Flags::PRESENT | Flags::WRITE | Flags::USER;
+    unsafe {
+        if !pml4[pml4_idx].p() {
+            let ptr = pmm::allocate();
+            pml4[pml4_idx].set_addr(((ptr as u64) >> 12) as u32);
+            pml4[pml4_idx].0 |= table_flags.bits();
+        }
+        let pml3 =
+            &mut *((((pml4[pml4_idx].addr() as u64) << 12) + hhdm) as *mut [PageDirectory; 512]); //or pdpt
+
+        if !pml3[pml3_idx].p() {
+            let ptr = pmm::allocate();
+            pml3[pml3_idx].set_addr(((ptr as u64) >> 12) as u32);
+            pml3[pml3_idx].0 |= table_flags.bits();
+        }
+
+        let pml2 =
+            &mut *(((((*pml3)[pml3_idx].addr() as u64) << 12) + hhdm) as *mut [PageDirectory; 512]); //or pd
+        if !pml2[pml2_idx].p() {
+            let ptr = pmm::allocate();
+            pml2[pml2_idx].set_addr(((ptr as u64) >> 12) as u32);
+            pml2[pml2_idx].0 |= table_flags.bits();
+        }
+        let pml1 = &mut *(((((*pml2)[pml2_idx].addr() as u64) << 12) + hhdm)
+            as *mut [PageTableEntry; 512]); // or pt
+
+        let page = &mut pml1[pml1_idx];
+        page.set_addr(physical_address >> 12);
+        page.0 |= flags.bits();
+    }
+}
+pub fn cr3_map_addresses(cr3: &mut Pml4, virtual_address: *mut u8, count: usize, flags: Flags) {
+    for i in 0..count {
+        let virt = (virtual_address as u64 + (i as u64 * PAGE_SIZE)) as _;
+        let phys = pmm::allocate();
+        cr3_map_address(cr3, virt, phys, flags);
+    }
+}
+pub fn cr3_set_flags_to_pages(
+    cr3: &mut Pml4,
+    virtual_address: *mut u8,
+    count: usize,
+    flags: Flags,
+) {
+    for i in 0..count {
+        let virt: *mut u8 = (virtual_address as u64 + (i as u64 * PAGE_SIZE)) as _;
+        let hhdm = get_hhdm();
+        let virtual_address = virt as u64 & !0xfff;
+        let virtual_addr = bytemuck::cast::<_, VirtualAddress>(virtual_address as u64);
+        let pml4_idx = virtual_addr.pml4() as usize;
+        let pml3_idx = virtual_addr.pml3() as usize;
+        let pml2_idx = virtual_addr.pml2() as usize;
+        let pml1_idx = virtual_addr.pml1() as usize;
+        let table_flags = Flags::PRESENT | Flags::WRITE | Flags::USER;
+        let pml4 = &mut cr3.0;
+        unsafe {
+            if !pml4[pml4_idx].p() {
+                let ptr = pmm::allocate();
+                pml4[pml4_idx].set_addr(((ptr as u64) >> 12) as u32);
+                pml4[pml4_idx].0 |= table_flags.bits();
+            }
+            let pml3 = &mut *((((pml4[pml4_idx].addr() as u64) << 12) + hhdm)
+                as *mut [PageDirectory; 512]); //or pdpt
+
+            if !pml3[pml3_idx].p() {
+                let ptr = pmm::allocate();
+                pml3[pml3_idx].set_addr(((ptr as u64) >> 12) as u32);
+                pml3[pml3_idx].0 |= table_flags.bits();
+            }
+
+            let pml2 = &mut *(((((*pml3)[pml3_idx].addr() as u64) << 12) + hhdm)
+                as *mut [PageDirectory; 512]); //or pd
+            if !pml2[pml2_idx].p() {
+                let ptr = pmm::allocate();
+                pml2[pml2_idx].set_addr(((ptr as u64) >> 12) as u32);
+                pml2[pml2_idx].0 |= table_flags.bits();
+            }
+            let pml1 = &mut *(((((*pml2)[pml2_idx].addr() as u64) << 12) + hhdm)
+                as *mut [PageTableEntry; 512]); // or pt
+
+            let page = &mut pml1[pml1_idx];
+            page.0 &= !Flags::all().bits();
+            page.0 |= flags.bits();
+        }
     }
 }
 pub fn map_address(virtual_address: *mut u8, physical_address: *mut u8, flags: Flags) {
@@ -210,6 +304,18 @@ pub fn map_address(virtual_address: *mut u8, physical_address: *mut u8, flags: F
         page.0 |= flags.bits();
     }
 }
+pub fn create_cr3() -> *mut u8 {
+    let phys_ptr = pmm::allocate();
+
+    let virt = (phys_ptr as u64) + get_hhdm();
+    let kpml4 = PML4.lock();
+    for i in 256..512 {
+        unsafe {
+            (*(virt as *mut [PageDirectory; 512]))[i] = kpml4.0[i];
+        }
+    }
+    phys_ptr
+}
 pub fn map_pages(virtual_address: *mut u8, count: usize, flags: Flags) {
     for i in 0..count as u64 {
         let virt = (virtual_address as u64 + (i * 0x1000)) as *mut u8;
@@ -218,7 +324,7 @@ pub fn map_pages(virtual_address: *mut u8, count: usize, flags: Flags) {
     }
 }
 #[repr(align(4096))]
-struct Pml4([PageDirectory; 512]);
+pub struct Pml4([PageDirectory; 512]);
 
 #[bitfield(u64, order = msb)]
 #[derive(Zeroable, Pod)]
@@ -305,7 +411,7 @@ bitflags! {
         const PS =             0b00000000000000000000000010000000;
         const PAT =            0b00000000000000000000000100000000;
         const GLOBAL =         0b00000000000000000000001000000000;
-        const XD =             0b10000000000000000000000000000000;
+        const XD =             1 << 63;
     }
 }
 fn get_cr3() -> u64 {
@@ -316,36 +422,3 @@ fn get_cr3() -> u64 {
 fn set_cr3(cr3: u64) {
     unsafe { core::arch::asm!("mov cr3, {}", in(reg)cr3) }
 }
-
-unsafe extern "C" {
-    fn replace_pml4(pml4: u64);
-    fn enable_pae();
-    fn reload_segments();
-    fn reload_cs();
-}
-
-global_asm! {"
-.globl enable_pae
-.globl replace_pml4
-.globl reload_segments
-
-enable_pae:
-    mov rdx, cr4
-    mov rax, (1 << 5)
-    mov rdx, rax
-    mov cr4, rdx
-replace_pml4:
-    mov rax, rdi
-    mov cr3, rax
-
-reload_segments:
-    mov ax, 0x10
-    mov cs, ax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-reload_cs:
-    push 0x08
-    lea rax, [rip + reload_segments]
-"}
