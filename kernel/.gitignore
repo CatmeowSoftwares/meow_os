@@ -1,3 +1,5 @@
 target/
 iso_root/
 limine/
+.vscode/
+.zed/
